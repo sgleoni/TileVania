@@ -8,39 +8,117 @@ public class PlayerMovement : MonoBehaviour
 {
     Vector2 moveInput;
     Rigidbody2D playerRigidbody;
-    SpriteRenderer playerSprite;
+    Animator playerAnimator;
+    CapsuleCollider2D playerBodyCollider;
+    BoxCollider2D playerFeetCollider;
+    float gravityScaleTemp = 0;
+    bool isAlive;
 
+    [Header("Movement")]
     [SerializeField] float runSpeed = 7f;
+    [SerializeField] float jumpSpeed = 5f;
+    [SerializeField] float climbSpeed = 7f;
+
+    [Header("Death")]
+    [SerializeField] Vector2 deathKick = new(10f, 10f);
 
     void Start()
     {
         playerRigidbody = GetComponent<Rigidbody2D>();
-        playerSprite = GetComponent<SpriteRenderer>();
+        playerAnimator = GetComponent<Animator>();
+        playerBodyCollider = GetComponent<CapsuleCollider2D>();
+        playerFeetCollider = GetComponent<BoxCollider2D>();
+        gravityScaleTemp = playerRigidbody.gravityScale;
+        isAlive = true;
     }
 
     void Update()
     {
-        Run();
+        Die();
+
+        if (isAlive)
+        {
+            Run();
+            FlipSprite();
+            Climb();
+        }
+    }
+
+    private void Die()
+    {
+        if (playerBodyCollider.IsTouchingLayers(LayerMask.GetMask("Enemy")))
+        {
+            isAlive = false;
+            playerAnimator.SetTrigger("death");
+            playerRigidbody.velocity = deathKick;
+            //playerBodyCollider.isTrigger = true;
+        }
     }
 
     void OnMove(InputValue value)
     {
-        moveInput = value.Get<Vector2>();
+        if (isAlive)
+        {
+            moveInput = value.Get<Vector2>();
+        }
+    }
+
+    void OnJump(InputValue value)
+    {
+        if (value.isPressed && PlayerIsOnGround() && isAlive)
+        {
+            playerRigidbody.velocity += new Vector2(0f, jumpSpeed);
+        }
     }
 
     void Run()
     {
         playerRigidbody.velocity = new(moveInput.x * runSpeed, playerRigidbody.velocity.y);
-        FlipSprite();
+
+        playerAnimator.SetBool("isRunning", PlayerHasHorizontalSpeed());
+    }
+
+    void Climb()
+    {
+        if (PlayerIsOnLadders())
+        {
+            playerRigidbody.velocity = new(playerRigidbody.velocity.x, moveInput.y * climbSpeed);
+            playerRigidbody.gravityScale = 0;
+        }
+        else
+        {
+            playerRigidbody.gravityScale = gravityScaleTemp;
+        }
+
+        playerAnimator.SetBool("isClimbing", PlayerHasVerticalSpeed() && PlayerIsOnLadders());
+
+    }
+
+    private bool PlayerIsOnGround()
+    {
+        return playerFeetCollider.IsTouchingLayers(LayerMask.GetMask("Ground"));
+    }
+
+    private bool PlayerIsOnLadders()
+    {
+        return playerFeetCollider.IsTouchingLayers(LayerMask.GetMask("Ladders"));
     }
 
     private void FlipSprite()
     {
-        bool playerHasHorizontalSpeed = Mathf.Abs(playerRigidbody.velocity.x) > Mathf.Epsilon;
-
-        if (playerHasHorizontalSpeed)
+        if (PlayerHasHorizontalSpeed())
         {
             transform.localScale = new(Mathf.Sign(playerRigidbody.velocity.x), 1f);
         }
+    }
+
+    private bool PlayerHasVerticalSpeed()
+    {
+        return Mathf.Abs(playerRigidbody.velocity.y) > Mathf.Epsilon;
+    }
+
+    private bool PlayerHasHorizontalSpeed()
+    {
+        return Mathf.Abs(playerRigidbody.velocity.x) > Mathf.Epsilon;
     }
 }
