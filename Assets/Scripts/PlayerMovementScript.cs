@@ -22,6 +22,11 @@ public class PlayerMovement : MonoBehaviour
     [Header("Death")]
     [SerializeField] Vector2 deathKick = new(10f, 10f);
 
+    [Header("Attack")]
+    [SerializeField] GameObject bullet;
+    [SerializeField] Transform gun;
+
+
     void Start()
     {
         playerRigidbody = GetComponent<Rigidbody2D>();
@@ -46,12 +51,19 @@ public class PlayerMovement : MonoBehaviour
 
     private void Die()
     {
-        if (playerBodyCollider.IsTouchingLayers(LayerMask.GetMask("Enemy")))
+        if (isAlive && playerBodyCollider.IsTouchingLayers(LayerMask.GetMask("Enemy", "Hazards")))
         {
             isAlive = false;
             playerAnimator.SetTrigger("death");
             playerRigidbody.velocity = deathKick;
-            //playerBodyCollider.isTrigger = true;
+        }
+    }
+
+    void OnFire(InputValue value)
+    {
+        if (isAlive)
+        {
+            Instantiate(bullet, gun.position, transform.rotation);
         }
     }
 

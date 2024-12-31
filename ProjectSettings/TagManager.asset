@@ -3,7 +3,8 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - Enemy
   layers:
   - Default
   - TransparentFX
@@ -17,9 +18,9 @@ TagManager:
   - Background
   - Bouncing
   - Enemy
-  - 
-  - 
-  - 
+  - Hazards
+  - Bullet
+  - Interactables
   - 
   - 
   - 
@@ -52,6 +53,12 @@ TagManager:
     locked: 0
   - name: Ladders
     uniqueID: 1947749471
+    locked: 0
+  - name: Hazards
+    uniqueID: 681251111
+    locked: 0
+  - name: Interactables
+    uniqueID: 1431874447
     locked: 0
   - name: Enemy
     uniqueID: 2249986639
